@@ -22,6 +22,7 @@ class Project(SQLModel, table=True):
     create_time: datetime.datetime = Field(default=datetime.datetime.now())
     deadline: datetime.datetime
     status: int = Field(default=0)
+    browse_times: int = Field(default=0)
 
     creater_id: int | None = Field(default=None, foreign_key="user.id")
     
@@ -34,8 +35,8 @@ class Project(SQLModel, table=True):
     
 class Question(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    q: str = Field(default=None)
-    a: int = Field(default=None)
+    q: str
+    a: int
     
     project_id: int | None = Field(default=None, foreign_key="project.id")
     
