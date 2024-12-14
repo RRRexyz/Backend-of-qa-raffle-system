@@ -33,16 +33,16 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-class UsernameAlreadyExists(BaseModel):
-    detail: str = "Username already exists."
+# class UsernameAlreadyExists(BaseModel):
+#     detail: str = "Username already exists."
     
 
-class IncorrectUsernameOrPassword(BaseModel):
-    detail: str = "Incorrect username or password."
+# class IncorrectUsernameOrPassword(BaseModel):
+#     detail: str = "Incorrect username or password."
 
 
-class NotAuthorized(BaseModel):
-    detail: str = "Not authorized."
+# class NotAuthorized(BaseModel):
+#     detail: str = "Not authorized."
 
 
 
@@ -105,7 +105,7 @@ def verify_token(token: Annotated[str, Depends(oauth2_scheme)],
 
 @router.post("/register", response_model=sch.UserResponse, 
             status_code=status.HTTP_201_CREATED,
-            responses = {400: {"model": UsernameAlreadyExists}},
+            responses = {400: {"description": "Username already exists."}},
             description="Register a new user whatever manager or not, username must be unique.")
 async def register_user(user: sch.UserRegister, session: Session = Depends(get_session)):
     user_for_db = models.User(username=user.username, 
@@ -123,7 +123,7 @@ async def register_user(user: sch.UserRegister, session: Session = Depends(get_s
 
 
 @router.post("/login", response_model=Token, 
-            responses={401: {"model": IncorrectUsernameOrPassword}},
+            responses={401: {"description": "Incorrect username or password."}},
             description="Log in a user and get a token for further authentication.")
 async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                     session: Session = Depends(get_session)) -> Token:
@@ -144,12 +144,12 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                 token_type="bearer", username=user.username)
 
 
-class InvalidRefreshToken(BaseModel):
-    detail: str = "Invalid Refresh token."
+# class InvalidRefreshToken(BaseModel):
+#     detail: str = "Invalid Refresh token."
 
 
 @router.get("/refresh/token", response_model=Token,
-            responses={401: {"model": InvalidRefreshToken}},
+            responses={401: {"description": "Invalid Refresh token."}},
             description="""
             When access token expires, use refresh token to get a new access token. 
             The method is to place the refresh token in the header with key "Authorization" 
@@ -178,19 +178,15 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)],
 
 
 @router.get("/user/me/", response_model=sch.UserResponse,
-            responses={401: {"model": NotAuthorized}},
+            responses={401: {"description": "Not authorized."}},
             description="Get the current logined user's information.")
 async def get_current_user(user = Depends(verify_token)):
     return user
     
 
-class UserDeleteSuccess(BaseModel):
-    detail: str = "User deleted successfully."
-
-
 @router.delete("/user/me/", status_code=status.HTTP_204_NO_CONTENT,
             responses={
-                401: {"model": NotAuthorized}},
+                401: {"description": "Not authorized."}},
             description="Delete the current logined user's account.")
 async def delete_current_user(user = Depends(verify_token), session: Session = Depends(get_session)):
     session.delete(user)
