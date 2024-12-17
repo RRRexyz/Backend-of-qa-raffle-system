@@ -25,7 +25,7 @@ This is a system for Student Online members to create Q&A projects and provide p
 answerers to raffle.
 """
 
-app = FastAPI(title="QA Raffle System", version="0.0.0", 
+app = FastAPI(title="QA Raffle System", version="0.0.1", 
             openapi_tags=tags_metadata, summary=summary)
 
 

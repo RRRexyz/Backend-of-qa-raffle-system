@@ -33,18 +33,6 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-# class UsernameAlreadyExists(BaseModel):
-#     detail: str = "Username already exists."
-    
-
-# class IncorrectUsernameOrPassword(BaseModel):
-#     detail: str = "Incorrect username or password."
-
-
-# class NotAuthorized(BaseModel):
-#     detail: str = "Not authorized."
-
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -106,7 +94,12 @@ def verify_token(token: Annotated[str, Depends(oauth2_scheme)],
 @router.post("/register", response_model=sch.UserResponse, 
             status_code=status.HTTP_201_CREATED,
             responses = {400: {"description": "Username already exists."}},
-            description="Register a new user whatever manager or not, username must be unique.")
+            description="""
+# Register a new user whatever manager or not, username must be unique.
+
+manage_permission is a boolean value to indicate whether the user is a manager or not.**Managers** can 
+create, update and delete projects while *non-managers* can only view and participate in projects.
+""")
 async def register_user(user: sch.UserRegister, session: Session = Depends(get_session)):
     user_for_db = models.User(username=user.username, 
                             hashed_password=get_password_hash(user.password),
@@ -124,7 +117,9 @@ async def register_user(user: sch.UserRegister, session: Session = Depends(get_s
 
 @router.post("/login", response_model=Token, 
             responses={401: {"description": "Incorrect username or password."}},
-            description="Log in a user and get a token for further authentication.")
+            description="""
+# Log in a user and get a token for further authentication.
+""")
 async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                     session: Session = Depends(get_session)) -> Token:
     user = session.exec(select(models.User).filter_by(username=form_data.username)).first()
@@ -144,17 +139,14 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                 token_type="bearer", username=user.username)
 
 
-# class InvalidRefreshToken(BaseModel):
-#     detail: str = "Invalid Refresh token."
-
-
 @router.get("/refresh/token", response_model=Token,
             responses={401: {"description": "Invalid Refresh token."}},
             description="""
-            When access token expires, use refresh token to get a new access token. 
-            The method is to place the refresh token in the header with key "Authorization" 
-            and value "Bearer <refresh_token>" like using an access token.
-            """)
+# When access token expires, use refresh token to get a new access token. 
+            
+The method is to place the refresh token in the header with key `Authorization` 
+and value `Bearer <refresh_token>` like using an access token.
+""")
 async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)], 
                 session: Session = Depends(get_session)):
     refresh_token_exception = HTTPException(
@@ -179,7 +171,7 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)],
 
 @router.get("/user/me/", response_model=sch.UserResponse,
             responses={401: {"description": "Not authorized."}},
-            description="Get the current logined user's information.")
+            description="# Get the current logined user's information.")
 async def get_current_user(user = Depends(verify_token)):
     return user
     
@@ -187,7 +179,7 @@ async def get_current_user(user = Depends(verify_token)):
 @router.delete("/user/me/", status_code=status.HTTP_204_NO_CONTENT,
             responses={
                 401: {"description": "Not authorized."}},
-            description="Delete the current logined user's account.")
+            description="# *Dangerous!* Delete the current logined user's account.")
 async def delete_current_user(user = Depends(verify_token), session: Session = Depends(get_session)):
     session.delete(user)
     session.commit()
