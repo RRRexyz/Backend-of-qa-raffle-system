@@ -45,11 +45,11 @@ class Question(SQLModel, table=True):
 
 class Prize(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(default=None)
+    name: str
     image: str | None = Field(default=None)
-    level: int = Field(default=0)
-    amount: int = Field(default=0)
-    probability: float = Field(default=0.0)
+    level: int
+    amount: int
+    probability: float
     
     project_id: int | None = Field(default=None, foreign_key="project.id")
     

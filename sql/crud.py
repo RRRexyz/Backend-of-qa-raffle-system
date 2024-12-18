@@ -40,14 +40,17 @@ def read_project_details(project_id: int, session: Session=Depends(get_session))
     return project
 
 
-def add_question(question_create: sch.QuestionCreate,
+def add_question(question_add: sch.QuestionAdd,
                 user = Depends(verify_token),
                 session: Session=Depends(get_session)):
     check_permission(user)
-    question = models.Question.model_validate(question_create)
+    question = models.Question.model_validate(question_add)
     session.add(question)
     session.commit()
     session.refresh(question)
     return question
+
+
+# def add_prize(prize_create)
 
 

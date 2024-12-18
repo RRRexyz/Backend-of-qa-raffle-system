@@ -95,10 +95,9 @@ def verify_token(token: Annotated[str, Depends(oauth2_scheme)],
             status_code=status.HTTP_201_CREATED,
             responses = {400: {"description": "Username already exists."}},
             description="""
-# Register a new user whatever manager or not, username must be unique.
+# 注册一个新用户（普通用户或管理员），用户名必须唯一。
 
-manage_permission is a boolean value to indicate whether the user is a manager or not.**Managers** can 
-create, update and delete projects while *non-managers* can only view and participate in projects.
+管理员可以创建、查看、更新和删除项目，而普通用户只能查看和参与项目。
 """)
 async def register_user(user: sch.UserRegister, session: Session = Depends(get_session)):
     user_for_db = models.User(username=user.username, 
@@ -118,7 +117,7 @@ async def register_user(user: sch.UserRegister, session: Session = Depends(get_s
 @router.post("/login", response_model=Token, 
             responses={401: {"description": "Incorrect username or password."}},
             description="""
-# Log in a user and get a token for further authentication.
+# 登录账号并获取 access token 和 refresh token。
 """)
 async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                     session: Session = Depends(get_session)) -> Token:
@@ -142,10 +141,9 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 @router.get("/refresh/token", response_model=Token,
             responses={401: {"description": "Invalid Refresh token."}},
             description="""
-# When access token expires, use refresh token to get a new access token. 
-            
-The method is to place the refresh token in the header with key `Authorization` 
-and value `Bearer <refresh_token>` like using an access token.
+# 当access_token过期时，用refresh_token获取新的access_token。
+
+方法是在请求头添加`Authorization`字段并设置值为`Bearer <refresh_token>`。
 """)
 async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)], 
                 session: Session = Depends(get_session)):
@@ -171,15 +169,14 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)],
 
 @router.get("/user/me/", response_model=sch.UserResponse,
             responses={401: {"description": "Not authorized."}},
-            description="# Get the current logined user's information.")
+            description="# 获取当前登录用户的信息。")
 async def get_current_user(user = Depends(verify_token)):
     return user
     
 
 @router.delete("/user/me/", status_code=status.HTTP_204_NO_CONTENT,
-            responses={
-                401: {"description": "Not authorized."}},
-            description="# *Dangerous!* Delete the current logined user's account.")
+            responses={401: {"description": "Not authorized."}},
+            description="# *谨慎*：注销当前登录用户的账号。")
 async def delete_current_user(user = Depends(verify_token), session: Session = Depends(get_session)):
     session.delete(user)
     session.commit()

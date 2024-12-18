@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 import datetime
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel
 
 
 class UserRegister(BaseModel):
@@ -93,7 +93,7 @@ class ProjectResponse(BaseModel):
     }
     
     
-class QuestionCreate(BaseModel):
+class QuestionAdd(BaseModel):
     project_id: int
     q: str
     a: int
@@ -168,3 +168,12 @@ class ProjectWithQuestions(ProjectPublic):
                 }
             }
         }
+
+
+class PrizeAdd(BaseModel):
+    name: str
+    image: str | None = None
+    level: int | None = None
+    amount: int
+    probability: float
+    project_id: int

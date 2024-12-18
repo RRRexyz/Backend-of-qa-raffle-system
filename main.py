@@ -7,31 +7,27 @@ from fastapi.middleware.cors import CORSMiddleware
 
 tags_metadata = [
     {
-        "name": "HelloWorld",
-        "description": "No usage."
+        "name": "测试",
+        "description": "没啥用。"
     },
     {
-        "name": "Login",
-        "description": "APIs for users to register and login, including token generation and verification."
+        "name": "用户模块",
+        "description": "用于用户注册、登录、注销的API，包括token生成和验证。"
     },
     {
-        "name": "QA",
-        "description": "APIs for users to curd Q&A projects and answer questions."
+        "name": "项目模块",
+        "description": "用于增删查改项目相关内容的API，包括问答和抽奖。"
     }
 ]
 
-summary = """
-This is a system for Student Online members to create Q&A projects and provide prizes for 
-answerers to raffle.
-"""
 
-app = FastAPI(title="QA Raffle System", version="0.0.1", 
-            openapi_tags=tags_metadata, summary=summary)
+app = FastAPI(title="问答抽奖系统", version="0.0.1", 
+            openapi_tags=tags_metadata)
 
 
-app.include_router(helloworld.router, tags=["HelloWorld"])
-app.include_router(login.router, tags=["Login"], prefix="/api")
-app.include_router(qa.router, tags=["QA"], prefix="/api")
+app.include_router(helloworld.router, tags=["测试"])
+app.include_router(login.router, tags=["用户模块"], prefix="/api")
+app.include_router(qa.router, tags=["项目模块"], prefix="/api")
 
 
 app.add_middleware(
