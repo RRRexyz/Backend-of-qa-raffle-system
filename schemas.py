@@ -68,6 +68,22 @@ class ProjectCreate(BaseModel):
         }
     }
 
+
+class ProjectUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    deadline: datetime.datetime | None = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "name": "校史问答",
+                "description": "关于山东大学历史的问答及抽奖活动",
+                "deadline": "2025-01-01 00:00:00"
+            }
+        }
+    }
+
     
 class ProjectResponse(BaseModel):
     id: int

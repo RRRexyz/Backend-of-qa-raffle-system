@@ -37,6 +37,37 @@ async def create_qa(project = Depends(crud.create_project)):
     return project  
 
 
+@router.patch("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizes,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Project not found."}},
+            description="""
+# 更新一个项目的信息。
+
+使用`id`指定要更新的项目。
+
+可更新项为`name`、`description`、`deadline`，都为可选。
+
+`deadline`的格式为："2024-12-19 19:49:33"（不必给出微秒数，默认为0即可）。
+""")
+async def update_project(project = Depends(crud.update_project)):
+    return project
+
+
+@router.delete("/project/{project_id}", status_code=status.HTTP_204_NO_CONTENT,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Project not found."}},
+            description="""
+# *谨慎*：删除一个项目。
+
+使用`id`指定要删除的项目。
+""")
+async def delete_project(project = Depends(crud.delete_project)):
+    pass
+
+
+
 @router.get("/project/me", response_model=list[sch.ProjectResponse],
             responses={401: {"description": "Not authorized."}},
             description="""
@@ -50,10 +81,10 @@ async def get_my_qa(projects = Depends(crud.read_projects_by_manager)):
 
 @router.get("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizes,
             responses={401: {"description": "Not authorized."},
-                        404: {"description": "Project not found."}},
+                    404: {"description": "Project not found."}},
             dependencies=[Depends(verify_token)],
             description="""
-# 通过id获取一个项目的详细信息。
+# 通过`id`获取一个项目的详细信息。
 
 当用户进入项目详情页时，用此接口展示项目的所有信息。
 """)

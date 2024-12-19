@@ -26,6 +26,34 @@ def create_project(project_create: sch.ProjectCreate,
     return project
 
 
+def update_project(project_id: int, project_update: sch.ProjectUpdate, 
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    check_permission(user)
+    project = session.get(models.Project, project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Project not found.")
+    project_data = project_update.model_dump(exclude_unset=True)
+    project.sqlmodel_update(project_data)
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    return project
+
+
+def delete_project(project_id: int, 
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    check_permission(user)
+    project = session.get(models.Project, project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Project not found.")
+    session.delete(project)
+    session.commit()
+
+
 def read_projects_by_manager(user = Depends(verify_token),
                             page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
                             page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
