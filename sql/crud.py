@@ -4,6 +4,7 @@ from sql.database import get_session
 from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
 from routers.login import verify_token
+from fastapi import Query
 
 
 
@@ -26,9 +27,12 @@ def create_project(project_create: sch.ProjectCreate,
 
 
 def read_projects_by_manager(user = Depends(verify_token),
+                            page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
+                            page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
                             session: Session=Depends(get_session)):
     check_permission(user)
-    projects = session.exec(select(models.Project).filter_by(creater_id=user.id)).all()
+    projects = session.exec(select(models.Project).offset((page-1)*page_size).limit(page_size)
+                            .filter_by(creater_id=user.id)).all()
     return projects
 
 
@@ -51,6 +55,12 @@ def add_question(question_add: sch.QuestionAdd,
     return question
 
 
-# def add_prize(prize_create)
-
-
+def add_prize(prize_add: sch.PrizeAdd,
+            user = Depends(verify_token),
+            session: Session=Depends(get_session)):
+    check_permission(user)
+    prize = models.Prize.model_validate(prize_add)
+    session.add(prize)
+    session.commit()
+    session.refresh(prize)
+    return prize

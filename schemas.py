@@ -63,7 +63,7 @@ class ProjectCreate(BaseModel):
             "example": {
                 "name": "校史问答",
                 "description": "关于山东大学历史的问答及抽奖活动",
-                "deadline": "2025-01-01T00:00:00"
+                "deadline": "2025-01-01 00:00:00"
             }
         }
     }
@@ -84,8 +84,8 @@ class ProjectResponse(BaseModel):
                 "id": 1,
                 "name": "校史问答",
                 "description": "关于山东大学历史的问答及抽奖活动",
-                "create_time": "2024-12-12 22:43:41.957805",
-                "deadline": "2025-01-01 00:00:00.000000",
+                "create_time": "2024-12-12T22:43:41.957805",
+                "deadline": "2025-01-01T00:00:00",
                 "status": 0,
                 "browse_times": 0
             }
@@ -125,6 +125,49 @@ class QuestionResponse(BaseModel):
     }
 
 
+class PrizeAdd(BaseModel):
+    name: str
+    image: str | None = None
+    level: int | None = None
+    amount: int
+    probability: float
+    project_id: int
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "name": "手机支架",
+                "image": "https://dummyimage.com/400x300",
+                "level": 2,
+                "amount": 20,
+                "probability": 0.25,
+                "project_id": 1
+            }
+        }
+    }
+    
+    
+class PrizeResponse(BaseModel):
+    id: int
+    name: str
+    image: str | None = None
+    level: int | None = None
+    amount: int
+    project_id: int
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "id": 1,
+                "name": "手机支架",
+                "image": "https://dummyimage.com/400x300",
+                "level": 2,
+                "amount": 20,
+                "project_id": 1
+            }
+        }
+    }
+
 
 class ProjectPublic(SQLModel):
     id: int
@@ -140,9 +183,19 @@ class QuestionPublic(SQLModel):
     id: int
     q: str
 
+
+class PrizePublic(SQLModel):
+    id: int
+    name: str
+    image: str | None = None
+    level: int | None = None
+    amount: int
+    project_id: int
+
     
-class ProjectWithQuestions(ProjectPublic):
+class ProjectWithQuestionsAndPrizes(ProjectPublic):
     question: list[QuestionPublic] = []
+    prize: list[PrizePublic] = []
     
     model_config = {
         "json_schema_extra": {
@@ -163,17 +216,25 @@ class ProjectWithQuestions(ProjectPublic):
                         {
                             "id": 2,
                             "q": "兴隆山校区在哪一年建成？",
-                        }
-                    ]
+                        }],
+                        "prize": [
+                        {
+                            "id": 1,
+                            "name": "手机支架",
+                            "image": "https://dummyimage.com/400x300",
+                            "level": 2,
+                            "amount": 20,
+                            "project_id": 1
+                        },
+                        {
+                            "id": 2,
+                            "name": "山大信纸",
+                            "image": "https://dummyimage.com/400x300",
+                            "level": 1,
+                            "amount": 10,
+                            "project_id": 1
+                        }]
                 }
             }
         }
 
-
-class PrizeAdd(BaseModel):
-    name: str
-    image: str | None = None
-    level: int | None = None
-    amount: int
-    probability: float
-    project_id: int
