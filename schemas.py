@@ -112,6 +112,10 @@ class ProjectResponse(BaseModel):
 class QuestionAdd(BaseModel):
     project_id: int
     q: str
+    o1: str
+    o2: str
+    o3: str
+    o4: str
     a: int
     
     model_config = {
@@ -119,16 +123,46 @@ class QuestionAdd(BaseModel):
             "example": {
                 "project_id": 1,
                 "q": "山东大学在哪一年建校？",
+                "o1": "1899",
+                "o2": "1900",
+                "o3": "1901",
+                "o4": "1902",
                 "a": 3
             }
         }
     }
     
+    
+class QuestionUpdate(BaseModel):
+    q: str | None = None
+    o1: str | None = None
+    o2: str | None = None
+    o3: str | None = None
+    o4: str | None = None
+    a: int | None = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "q": "山东大学在哪一年建校？",
+                "o1": "1899",
+                "o2": "1900",
+                "o3": "1901",
+                "o4": "1902",
+                "a": 3
+            }
+        }
+    }
+
 
 class QuestionResponse(BaseModel):
     project_id: int
     id: int
     q: str
+    o1: str
+    o2: str
+    o3: str
+    o4: str
     
     model_config = {
         "json_schema_extra": {
@@ -136,6 +170,10 @@ class QuestionResponse(BaseModel):
                 "project_id": 1,
                 "id": 1,
                 "q": "山东大学在哪一年建校？",
+                "o1": "1899",
+                "o2": "1900",
+                "o3": "1901",
+                "o4": "1902"
             }
         }
     }
@@ -162,13 +200,34 @@ class PrizeAdd(BaseModel):
         }
     }
     
+
+class PrizeUpdate(BaseModel):
+    name: str | None = None
+    image: str | None = None
+    level: int | None = None
+    amount: int | None = None
+    probability: float | None = None
     
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "name": "手机支架",
+                "image": "https://dummyimage.com/400x300",
+                "level": 2,
+                "amount": 20,
+                "probability": 0.25
+            }
+        }
+    }
+
+
 class PrizeResponse(BaseModel):
     id: int
     name: str
     image: str | None = None
     level: int | None = None
     amount: int
+    probability: float
     project_id: int
     
     model_config = {
@@ -198,6 +257,10 @@ class ProjectPublic(SQLModel):
 class QuestionPublic(SQLModel):
     id: int
     q: str
+    o1: str
+    o2: str
+    o3: str
+    o4: str
 
 
 class PrizePublic(SQLModel):
@@ -206,6 +269,7 @@ class PrizePublic(SQLModel):
     image: str | None = None
     level: int | None = None
     amount: int
+    probability: float
     project_id: int
 
     
@@ -228,10 +292,18 @@ class ProjectWithQuestionsAndPrizes(ProjectPublic):
                         {
                             "id": 1,
                             "q": "山东大学在哪一年建校？",
+                            "o1": "1899",
+                            "o2": "1900",
+                            "o3": "1901",
+                            "o4": "1902"
                         },
                         {
                             "id": 2,
                             "q": "兴隆山校区在哪一年建成？",
+                            "o1": "2002",
+                            "o2": "2003",
+                            "o3": "2004",
+                            "o4": "2005"
                         }],
                         "prize": [
                         {

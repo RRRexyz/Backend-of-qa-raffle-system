@@ -83,6 +83,34 @@ def add_question(question_add: sch.QuestionAdd,
     return question
 
 
+def update_question(question_id: int, question_update: sch.QuestionUpdate,
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    check_permission(user)
+    question = session.get(models.Question, question_id)
+    if not question:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Question not found.")
+    question_data = question_update.model_dump(exclude_unset=True)
+    question.sqlmodel_update(question_data)
+    session.add(question)
+    session.commit()
+    session.refresh(question)
+    return question
+    
+
+def delete_question(question_id: int,
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    check_permission(user)
+    question = session.get(models.Question, question_id)
+    if not question:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Question not found.")
+    session.delete(question)
+    session.commit()
+    
+
 def add_prize(prize_add: sch.PrizeAdd,
             user = Depends(verify_token),
             session: Session=Depends(get_session)):
@@ -92,3 +120,31 @@ def add_prize(prize_add: sch.PrizeAdd,
     session.commit()
     session.refresh(prize)
     return prize
+
+
+def update_prize(prize_id: int, prize_update: sch.PrizeUpdate,
+            user = Depends(verify_token),
+            session: Session=Depends(get_session)):
+    check_permission(user)
+    prize = session.get(models.Prize, prize_id)
+    if not prize:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Prize not found.")
+    prize_data = prize_update.model_dump(exclude_unset=True)
+    prize.sqlmodel_update(prize_data)
+    session.add(prize)
+    session.commit()
+    session.refresh(prize)
+    return prize
+
+
+def delete_prize(prize_id: int,
+            user = Depends(verify_token),
+            session: Session=Depends(get_session)):
+    check_permission(user)
+    prize = session.get(models.Prize, prize_id)
+    if not prize:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Prize not found.")
+    session.delete(prize)
+    session.commit()

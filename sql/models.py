@@ -36,6 +36,10 @@ class Project(SQLModel, table=True):
 class Question(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     q: str
+    o1: str
+    o2: str
+    o3: str
+    o4: str
     a: int
     
     project_id: int | None = Field(default=None, foreign_key="project.id")

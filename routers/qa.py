@@ -33,7 +33,7 @@ router = APIRouter()
 并且当微秒为0时，Python的datetime模块返回的内容中不会显示微秒。例如
 数据库中的"2025-01-01 03:04:05.000000"，Python的datetime模块解析结果为"2025-01-01T03:04:05"。
 """)
-async def create_qa(project = Depends(crud.create_project)):
+async def create_project(project = Depends(crud.create_project)):
     return project  
 
 
@@ -69,13 +69,14 @@ async def delete_project(project = Depends(crud.delete_project)):
 
 
 @router.get("/project/me", response_model=list[sch.ProjectResponse],
-            responses={401: {"description": "Not authorized."}},
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."}},
             description="""
 # 获取当前用户创建的所有项目的预览（不包含问答题目和抽奖奖品信息）。
 
 用于在用户主页展示自己创建的项目预览信息。
 """)
-async def get_my_qa(projects = Depends(crud.read_projects_by_manager)):
+async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
     return projects
 
 
@@ -94,14 +95,43 @@ async def get_project_details(project = Depends(crud.read_project_details)):
 
 @router.post("/question", response_model=sch.QuestionResponse,
             status_code=status.HTTP_201_CREATED,
-            responses={401: {"description": "Not authorized."}},
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},},
             description="""
 # 给项目增加一个新的问答题目。
- 
-`a`是问0 题`q`的答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
+
+`a`是问0 题`q`的正确答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
 """)   
 async def add_question(question = Depends(crud.add_question)):
     return question
+
+
+@router.patch("/question/{question_id}", response_model=sch.QuestionResponse,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Question not found."}},
+            description="""
+# 对一个问答题目的内容进行修改。
+
+使用`id`指定要更新的项目。
+
+`a`是问题`q`的正确答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
+""")
+async def update_question(question = Depends(crud.update_question)):
+    return question
+
+
+@router.delete("/question/{question_id}", status_code=status.HTTP_204_NO_CONTENT,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Question not found."}},
+            description="""
+# *谨慎*：删除一个问答题目。
+
+使用`id`指定要删除的题目。
+""")
+async def delete_question(question = Depends(crud.delete_question)):
+    pass
 
 
 @router.post("/prize", response_model=sch.PrizeResponse,
@@ -122,3 +152,29 @@ async def add_question(question = Depends(crud.add_question)):
 """)
 async def add_prize(prize = Depends(crud.add_prize)):
     return prize
+
+
+@router.patch("/prize/{prize_id}", response_model=sch.PrizeResponse,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Prize not found."}},
+            description="""
+# 对一个抽奖奖品的内容进行修改。
+
+使用`id`指定要更新的奖品。
+""")
+async def update_prize(prize = Depends(crud.update_prize)):
+    return prize
+
+
+@router.delete("/prize/{prize_id}", status_code=status.HTTP_204_NO_CONTENT,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Prize not found."}},
+            description="""
+# *谨慎*：删除一个抽奖奖品。
+
+使用`id`指定要删除的奖品。
+""")
+async def delete_prize(prize = Depends(crud.delete_prize)):
+    pass
