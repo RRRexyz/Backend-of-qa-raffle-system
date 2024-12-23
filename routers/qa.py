@@ -100,7 +100,9 @@ async def get_project_details(project = Depends(crud.read_project_details)):
             description="""
 # 给项目增加一个新的问答题目。
 
-`a`是问0 题`q`的正确答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
+`o1`、`o2`、`o3`、`o4`分别为ABCD四个选项。
+
+`a`是问题`q`的正确答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
 """)   
 async def add_question(question = Depends(crud.add_question)):
     return question
@@ -114,8 +116,6 @@ async def add_question(question = Depends(crud.add_question)):
 # 对一个问答题目的内容进行修改。
 
 使用`id`指定要更新的项目。
-
-`a`是问题`q`的正确答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
 """)
 async def update_question(question = Depends(crud.update_question)):
     return question
@@ -144,9 +144,8 @@ async def delete_question(question = Depends(crud.delete_question)):
 
 `image`为奖品图片存储在图床中的url地址。
 
-`level`为奖品等级，1为一等奖，2为二等奖，3为三等奖，0为安慰奖。可以为空，空表示只有一个等级的奖品，不必设置等级。
-
-`probability`为奖品中奖概率，介于0-1之间。（前端校验一下吧）
+`level`为奖品等级，1为一等奖，2为二等奖，3为三等奖，以此类推......
+0为安慰奖。可以为空，空表示只有一个等级的奖品，不必设置等级。
 
 `amount`为奖品数量，大于0。（前端校验一下吧）
 """)

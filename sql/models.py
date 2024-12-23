@@ -53,7 +53,6 @@ class Prize(SQLModel, table=True):
     image: str | None = Field(default=None)
     level: int
     amount: int
-    probability: float
     
     project_id: int | None = Field(default=None, foreign_key="project.id")
     
@@ -64,7 +63,7 @@ class Record(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: int | None = Field(default=None, foreign_key="user.id")
     project_id: int | None = Field(default=None, foreign_key="project.id")
-    answer: str = Field(default=None, nullable=True)
+    answer: str | None = Field(default=None)
     answer_time: datetime.datetime = Field(default=datetime.datetime.now())
     raffle_times: int = Field(default=0)
     raffle_result: int | None = Field(default=None)

@@ -184,7 +184,6 @@ class PrizeAdd(BaseModel):
     image: str | None = None
     level: int | None = None
     amount: int
-    probability: float
     project_id: int
     
     model_config = {
@@ -194,7 +193,6 @@ class PrizeAdd(BaseModel):
                 "image": "https://dummyimage.com/400x300",
                 "level": 2,
                 "amount": 20,
-                "probability": 0.25,
                 "project_id": 1
             }
         }
@@ -206,7 +204,6 @@ class PrizeUpdate(BaseModel):
     image: str | None = None
     level: int | None = None
     amount: int | None = None
-    probability: float | None = None
     
     model_config = {
         "json_schema_extra": {
@@ -214,8 +211,7 @@ class PrizeUpdate(BaseModel):
                 "name": "手机支架",
                 "image": "https://dummyimage.com/400x300",
                 "level": 2,
-                "amount": 20,
-                "probability": 0.25
+                "amount": 20
             }
         }
     }
@@ -227,7 +223,6 @@ class PrizeResponse(BaseModel):
     image: str | None = None
     level: int | None = None
     amount: int
-    probability: float
     project_id: int
     
     model_config = {
@@ -269,7 +264,6 @@ class PrizePublic(SQLModel):
     image: str | None = None
     level: int | None = None
     amount: int
-    probability: float
     project_id: int
 
     
