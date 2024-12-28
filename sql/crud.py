@@ -115,7 +115,10 @@ def add_prize(prize_add: sch.PrizeAdd,
             user = Depends(verify_token),
             session: Session=Depends(get_session)):
     check_permission(user)
-    prize = models.Prize.model_validate(prize_add)
+    prize_add_dict = prize_add.model_dump()
+    prize_add_dict['remain'] = prize_add.amount
+    prize = models.Prize(**prize_add_dict)
+    # prize = models.Prize.model_validate(prize_add_new)
     session.add(prize)
     session.commit()
     session.refresh(prize)
@@ -131,6 +134,12 @@ def update_prize(prize_id: int, prize_update: sch.PrizeUpdate,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Prize not found.")
     prize_data = prize_update.model_dump(exclude_unset=True)
+    if 'amount' in prize_data:
+        amount_change = prize_data['amount'] - prize.amount
+        prize_data["remain"] = prize.remain + amount_change
+        if prize_data["remain"] < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                                detail="Prize amount is less than already raffled.")
     prize.sqlmodel_update(prize_data)
     session.add(prize)
     session.commit()

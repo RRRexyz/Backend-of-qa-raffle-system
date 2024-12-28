@@ -149,7 +149,8 @@ async def add_prize(prize = Depends(crud.add_prize)):
 @router.patch("/prize/{prize_id}", response_model=sch.PrizeResponse,
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
-                        404: {"description": "Prize not found."}},
+                        404: {"description": "Prize not found."},
+                        400: {"description": "Prize amount is less than already raffled."}},
             summary="对一个抽奖奖品的内容进行修改。",
             description="""
 使用`id`指定要更新的奖品。

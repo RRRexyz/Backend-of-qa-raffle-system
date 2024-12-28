@@ -223,6 +223,7 @@ class PrizeResponse(BaseModel):
     image: str | None = None
     level: int | None = None
     amount: int
+    remain: int
     project_id: int
     
     model_config = {
@@ -233,6 +234,7 @@ class PrizeResponse(BaseModel):
                 "image": "https://dummyimage.com/400x300",
                 "level": 2,
                 "amount": 20,
+                "remain": 20,
                 "project_id": 1
             }
         }
@@ -264,6 +266,7 @@ class PrizePublic(SQLModel):
     image: str | None = None
     level: int | None = None
     amount: int
+    remain: int
     project_id: int
 
     
@@ -306,6 +309,7 @@ class ProjectWithQuestionsAndPrizes(ProjectPublic):
                             "image": "https://dummyimage.com/400x300",
                             "level": 2,
                             "amount": 20,
+                            "remain": 20,
                             "project_id": 1
                         },
                         {
@@ -314,6 +318,7 @@ class ProjectWithQuestionsAndPrizes(ProjectPublic):
                             "image": "https://dummyimage.com/400x300",
                             "level": 1,
                             "amount": 10,
+                            "remain": 10,
                             "project_id": 1
                         }]
                 }

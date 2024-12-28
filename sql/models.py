@@ -53,6 +53,7 @@ class Prize(SQLModel, table=True):
     image: str | None = Field(default=None)
     level: int
     amount: int
+    remain: int
     
     project_id: int | None = Field(default=None, foreign_key="project.id")
     
