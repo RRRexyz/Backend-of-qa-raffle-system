@@ -12,9 +12,8 @@ router = APIRouter()
             responses={
                 401: {"description": "Not authorized."},
                 403: {"description": "No permission."}},
+            summary="创建一个新的空白项目。",
             description="""
-# 创建一个新的空白项目。
-
 刚创建完的项目处于未发布状态(`status=0`)。
 
 你可以添加问答题目和抽奖奖品，并发布项目(`status=1`)。
@@ -41,9 +40,8 @@ async def create_project(project = Depends(crud.create_project)):
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Project not found."}},
+            summary="更新一个项目的信息。",
             description="""
-# 更新一个项目的信息。
-
 使用`id`指定要更新的项目。
 
 可更新项为`name`、`description`、`deadline`，都为可选。
@@ -58,9 +56,8 @@ async def update_project(project = Depends(crud.update_project)):
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Project not found."}},
+            summary="谨慎：删除一个项目。",
             description="""
-# *谨慎*：删除一个项目。
-
 使用`id`指定要删除的项目。
 """)
 async def delete_project(project = Depends(crud.delete_project)):
@@ -71,9 +68,8 @@ async def delete_project(project = Depends(crud.delete_project)):
 @router.get("/project/me", response_model=list[sch.ProjectResponse],
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."}},
+            summary="获取当前用户创建的所有项目的预览（不包含问答题目和抽奖奖品信息）。",
             description="""
-# 获取当前用户创建的所有项目的预览（不包含问答题目和抽奖奖品信息）。
-
 用于在用户主页展示自己创建的项目预览信息。
 """)
 async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
@@ -84,9 +80,10 @@ async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
             responses={401: {"description": "Not authorized."},
                     404: {"description": "Project not found."}},
             dependencies=[Depends(verify_token)],
+            summary="获取一个项目的详细信息。",
             description="""
-# 通过`id`获取一个项目的详细信息。
-
+使用`id`指定要获取的项目。
+            
 当用户进入项目详情页时，用此接口展示项目的所有信息。
 """)
 async def get_project_details(project = Depends(crud.read_project_details)):
@@ -97,9 +94,8 @@ async def get_project_details(project = Depends(crud.read_project_details)):
             status_code=status.HTTP_201_CREATED,
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},},
+            summary="给项目增加一个新的问答题目。",
             description="""
-# 给项目增加一个新的问答题目。
-
 `o1`、`o2`、`o3`、`o4`分别为ABCD四个选项。
 
 `a`是问题`q`的正确答案，值1、2、3、4分别代表'A'、'B'、'C'、'D'。
@@ -112,9 +108,8 @@ async def add_question(question = Depends(crud.add_question)):
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Question not found."}},
+            summary="对一个问答题目的内容进行修改。",
             description="""
-# 对一个问答题目的内容进行修改。
-
 使用`id`指定要更新的项目。
 """)
 async def update_question(question = Depends(crud.update_question)):
@@ -125,9 +120,8 @@ async def update_question(question = Depends(crud.update_question)):
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Question not found."}},
+            summary="谨慎：删除一个问答题目。",
             description="""
-# *谨慎*：删除一个问答题目。
-
 使用`id`指定要删除的题目。
 """)
 async def delete_question(question = Depends(crud.delete_question)):
@@ -137,9 +131,8 @@ async def delete_question(question = Depends(crud.delete_question)):
 @router.post("/prize", response_model=sch.PrizeResponse,
             status_code=status.HTTP_201_CREATED,
             responses={401: {"description": "Not authorized."}},
+            summary="给项目增加一个抽奖奖品。",
             description="""
-# 给项目增加一个抽奖奖品。
-
 `name`为奖品名称。
 
 `image`为奖品图片存储在图床中的url地址。
@@ -157,9 +150,8 @@ async def add_prize(prize = Depends(crud.add_prize)):
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Prize not found."}},
+            summary="对一个抽奖奖品的内容进行修改。",
             description="""
-# 对一个抽奖奖品的内容进行修改。
-
 使用`id`指定要更新的奖品。
 """)
 async def update_prize(prize = Depends(crud.update_prize)):
@@ -170,9 +162,8 @@ async def update_prize(prize = Depends(crud.update_prize)):
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Prize not found."}},
+            summary="谨慎：删除一个抽奖奖品。",
             description="""
-# *谨慎*：删除一个抽奖奖品。
-
 使用`id`指定要删除的奖品。
 """)
 async def delete_prize(prize = Depends(crud.delete_prize)):
