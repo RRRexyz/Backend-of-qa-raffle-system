@@ -70,7 +70,7 @@ async def delete_project(project = Depends(crud.delete_project)):
                         403: {"description": "No permission."}},
             summary="获取当前用户创建的所有项目的预览（不包含问答题目和抽奖奖品信息）。",
             description="""
-用于在用户主页展示自己创建的项目预览信息。
+用于在管理员主页展示自己创建的项目预览信息。
 """)
 async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
     return projects
@@ -84,7 +84,9 @@ async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
             description="""
 使用`id`指定要获取的项目。
             
-当用户进入项目详情页时，用此接口展示项目的所有信息。
+当管理员进入项目详情页时，用此接口展示项目的所有信息。
+
+调用此接口不会增加项目的访问次数。（管理员自己看没什么意义）
 """)
 async def get_project_details(project = Depends(crud.read_project_details)):
     return project

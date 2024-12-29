@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import helloworld, login, qa
+from routers import backstage, helloworld, login, frontstage
 from sql.database import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,8 +15,12 @@ tags_metadata = [
         "description": "用于用户注册、登录、注销的API，包括token生成和验证。"
     },
     {
-        "name": "项目模块",
-        "description": "用于增删查改项目相关内容的API，包括问答和抽奖。"
+        "name": "后台管理端",
+        "description": "用于管理员增删查改项目相关内容的API，包括问答和抽奖。"
+    },
+    {
+        "name": "前台用户端",
+        "description": "用于用户参与问答抽奖的API，包括答题和抽签。"
     }
 ]
 
@@ -27,7 +31,8 @@ app = FastAPI(title="问答抽奖系统", version="0.0.1",
 
 app.include_router(helloworld.router, tags=["测试"])
 app.include_router(login.router, tags=["用户模块"], prefix="/api")
-app.include_router(qa.router, tags=["项目模块"], prefix="/api")
+app.include_router(backstage.router, tags=["后台管理端"], prefix="/api")
+app.include_router(frontstage.router, tags=["前台用户端"], prefix="/api")
 
 
 app.add_middleware(

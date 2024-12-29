@@ -72,6 +72,18 @@ def read_project_details(project_id: int, session: Session=Depends(get_session))
     return project
 
 
+def read_project_details_by_user(project_id: int, session: Session=Depends(get_session)):
+    project = session.get(models.Project, project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Project not found.")
+    project.browse_times += 1
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    return project
+
+
 def add_question(question_add: sch.QuestionAdd,
                 user = Depends(verify_token),
                 session: Session=Depends(get_session)):
