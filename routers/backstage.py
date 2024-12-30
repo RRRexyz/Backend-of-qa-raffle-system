@@ -156,6 +156,10 @@ async def add_prize(prize = Depends(crud.add_prize)):
             summary="对一个抽奖奖品的内容进行修改。",
             description="""
 使用`id`指定要更新的奖品。
+
+如果修改`amount`，会使`remain`减少或增加相同的数值。
+
+*因此必须保证修改后的值大于等于该奖品已经抽出的数量*，否则`remain`变为负数，后端会响应400错误。
 """)
 async def update_prize(prize = Depends(crud.update_prize)):
     return prize
@@ -171,3 +175,21 @@ async def update_prize(prize = Depends(crud.update_prize)):
 """)
 async def delete_prize(prize = Depends(crud.delete_prize)):
     pass
+
+
+@router.patch("/project/{project_id}/publish", response_model=sch.ProjectWithQuestionsAndPrizes,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Project not found."}},
+            summary="发布一个项目。",
+            description="""
+使用`id`指定要发布的项目。
+
+发布后，项目状态`status`变为1，即已发布。
+
+项目必须至少有一个问答题目或者一个抽奖奖品才可以发布（前端校验一下吧）。
+
+只有问答的项目可以加上“仅问答”的标签，只有抽奖的项目可以加上“仅抽奖”的标签。二者都有的话可以加上“问答抽奖”的标签。
+""")
+async def publish_project(project = Depends(crud.publish_project)):
+    return project

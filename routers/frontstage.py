@@ -14,7 +14,7 @@ router = APIRouter()
             summary="获取一个项目的详细信息。",
             description="""
 使用`id`指定要获取的项目。
-            
+
 当用户进入项目详情页时，用此接口展示项目的所有信息。
 
 调用此接口会增加项目的访问次数`browse_times`。

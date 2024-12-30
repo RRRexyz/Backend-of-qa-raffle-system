@@ -169,3 +169,21 @@ def delete_prize(prize_id: int,
                             detail="Prize not found.")
     session.delete(prize)
     session.commit()
+    
+    
+def publish_project(project_id: int,
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    check_permission(user)
+    project = session.get(models.Project, project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Project not found.")
+    if project.status == 0:
+        project.status = 1
+        session.add(project)
+        session.commit()
+        session.refresh(project)
+    return project
+
+
