@@ -79,7 +79,6 @@ async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
 @router.get("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizes,
             responses={401: {"description": "Not authorized."},
                     404: {"description": "Project not found."}},
-            dependencies=[Depends(verify_token)],
             summary="获取一个项目的详细信息。",
             description="""
 使用`id`指定要获取的项目。

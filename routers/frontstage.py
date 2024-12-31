@@ -3,12 +3,12 @@ import schemas as sch
 import sql.crud as crud
 from routers.login import verify_token
 
-
 router = APIRouter()
 
 
 @router.get("/project/{project_id}/user", response_model=sch.ProjectWithQuestionsAndPrizes,
             responses={401: {"description": "Not authorized."},
+                    403: {"description": "Project not published."},
                     404: {"description": "Project not found."}},
             dependencies=[Depends(verify_token)],
             summary="获取一个项目的详细信息。",

@@ -5,7 +5,19 @@ from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
 from routers.login import verify_token
 from fastapi import Query
+import datetime
 
+
+
+def check_project_timeout(project) -> bool:
+    nowtime = datetime.datetime.now()
+    if project.deadline <= nowtime and project.status == 1:
+        project.status = 2
+        return True
+    elif project.deadline > nowtime and project.status == 2:
+        project.status = 1
+        return True
+    return False
 
 
 def check_permission(user: models.User):
@@ -36,6 +48,7 @@ def update_project(project_id: int, project_update: sch.ProjectUpdate,
                             detail="Project not found.")
     project_data = project_update.model_dump(exclude_unset=True)
     project.sqlmodel_update(project_data)
+    check_project_timeout(project)
     session.add(project)
     session.commit()
     session.refresh(project)
@@ -61,23 +74,42 @@ def read_projects_by_manager(user = Depends(verify_token),
     check_permission(user)
     projects = session.exec(select(models.Project).offset((page-1)*page_size).limit(page_size)
                             .filter_by(creater_id=user.id)).all()
+    
+    for project in projects:
+        if check_project_timeout(project):
+            session.add(project)
+            session.commit()
+            session.refresh(project)
     return projects
 
 
-def read_project_details(project_id: int, session: Session=Depends(get_session)):
+def read_project_details(project_id: int, 
+                        user = Depends(verify_token),
+                        session: Session=Depends(get_session)):
+    check_permission(user)
     project = session.get(models.Project, project_id)
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Project not found.")
+        
+    if check_project_timeout(project):
+        session.add(project)
+        session.commit()
+        session.refresh(project)
     return project
 
 
-def read_project_details_by_user(project_id: int, session: Session=Depends(get_session)):
+def read_project_details_by_user(project_id: int, 
+                                session: Session=Depends(get_session)):
     project = session.get(models.Project, project_id)
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Project not found.")
+    if project.status == 0:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail="Project not published.")
     project.browse_times += 1
+    check_project_timeout(project)
     session.add(project)
     session.commit()
     session.refresh(project)
