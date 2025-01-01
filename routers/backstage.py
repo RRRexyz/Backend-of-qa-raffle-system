@@ -36,7 +36,7 @@ async def create_project(project = Depends(crud.create_project)):
     return project  
 
 
-@router.patch("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizes,
+@router.patch("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizesForManager,
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Project not found."}},
@@ -76,7 +76,7 @@ async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
     return projects
 
 
-@router.get("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizes,
+@router.get("/project/{project_id}", response_model=sch.ProjectWithQuestionsAndPrizesForManager,
             responses={401: {"description": "Not authorized."},
                     404: {"description": "Project not found."}},
             summary="获取一个项目的详细信息。",
@@ -176,7 +176,7 @@ async def delete_prize(prize = Depends(crud.delete_prize)):
     pass
 
 
-@router.patch("/project/{project_id}/publish", response_model=sch.ProjectWithQuestionsAndPrizes,
+@router.patch("/project/{project_id}/publish", response_model=sch.ProjectWithQuestionsAndPrizesForManager,
             responses={401: {"description": "Not authorized."},
                         403: {"description": "No permission."},
                         404: {"description": "Project not found."}},

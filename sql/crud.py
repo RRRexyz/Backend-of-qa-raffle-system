@@ -100,6 +100,7 @@ def read_project_details(project_id: int,
 
 
 def read_project_details_by_user(project_id: int, 
+                                user = Depends(verify_token),
                                 session: Session=Depends(get_session)):
     project = session.get(models.Project, project_id)
     if not project:
@@ -113,6 +114,30 @@ def read_project_details_by_user(project_id: int,
     session.add(project)
     session.commit()
     session.refresh(project)
+    record = session.exec(select(models.Record).filter_by(user_id=user.id, project_id=project_id)).first()
+    questions = session.exec(select(models.Question).filter_by(project_id=project_id)).all()
+    prizes = session.exec(select(models.Prize).filter_by(project_id=project_id)).all()
+    if record:
+        project_data = sch.ProjectWithQuestionsAndPrizesForUser.model_validate(project)
+        if questions != [] and prizes != []:  # 如果是问答+抽奖项目，有记录说明至少已经答了题
+            project_data.user_answer = eval(record.answer)
+            project_data.correct_answer = [question.a for question in questions]
+            project_data.raffle_times = record.raffle_times
+            return project_data
+        elif questions != [] and prizes == []:  # 如果是仅问答项目，有记录说明已经答了题
+            project_data.user_answer = eval(record.answer)
+            project_data.correct_answer = [question.a for question in questions]
+            return project_data
+        elif questions == [] and prizes != []:  # 如果是仅抽奖项目，有记录说明已经抽过奖
+            project_data.raffle_times = 1
+            print(555)
+            return project_data
+    else:
+        if questions == [] and prizes != []: # 没记录并且是仅抽奖项目，说明还没参与抽奖
+            project_data = sch.ProjectWithQuestionsAndPrizesForUser.model_validate(project)
+            project_data.raffle_times = 1
+            print(666)
+            return project_data
     return project
 
 
@@ -219,3 +244,28 @@ def publish_project(project_id: int,
     return project
 
 
+def answer_question(user_answer: sch.AnswerQuestions,
+                    user = Depends(verify_token),
+                    session: Session=Depends(get_session)):
+    questions = session.exec(select(models.Question).filter_by(project_id=user_answer.project_id)).all()
+    correct_answer = [question.a for question in questions]
+    question_num = len(questions)
+    correct_num = 0
+    for i in range(question_num):
+        if user_answer.answer[i] == correct_answer[i]:
+            correct_num += 1
+    correct_rate = correct_num / question_num
+    raffle_times = int(correct_rate * 5 + 0.5)   # 四舍五入，注意用round()函数会出现银行家舍入问题
+    record_in_db = session.exec(select(models.Record).filter_by(user_id=user.id, 
+                                project_id=user_answer.project_id)).first()
+    if not record_in_db:
+        record = models.Record(user_id=user.id,
+                            project_id=user_answer.project_id,
+                            answer=str(user_answer.answer),
+                            answer_time=datetime.datetime.now(),
+                            raffle_times=raffle_times)
+        session.add(record)
+        session.commit()
+        session.refresh(record)
+    project = read_project_details_by_user(project_id=user_answer.project_id, user=user, session=session)
+    return project

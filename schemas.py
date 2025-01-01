@@ -241,6 +241,11 @@ class PrizeResponse(BaseModel):
     }
 
 
+class UserPublic(SQLModel):
+    id: int
+    username: str
+
+
 class ProjectPublic(SQLModel):
     id: int
     name: str
@@ -249,15 +254,19 @@ class ProjectPublic(SQLModel):
     deadline: datetime.datetime
     status: int
     browse_times: int
+    creater: UserPublic
 
 
-class QuestionPublic(SQLModel):
+class QuestionPublicWithoutAnswer(SQLModel):
     id: int
     q: str
     o1: str
     o2: str
     o3: str
     o4: str
+    
+class QuestionPublicWithAnswer(QuestionPublicWithoutAnswer):
+    a: int
 
 
 class PrizePublic(SQLModel):
@@ -270,8 +279,74 @@ class PrizePublic(SQLModel):
     project_id: int
 
     
-class ProjectWithQuestionsAndPrizes(ProjectPublic):
-    question: list[QuestionPublic] = []
+class ProjectWithQuestionsAndPrizesForUser(ProjectPublic):
+    question: list[QuestionPublicWithoutAnswer] = []    
+    user_answer: list[int] = []
+    correct_answer: list[int] = []
+    raffle_times: int | None = None
+    prize: list[PrizePublic] = []
+
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": 
+                    {
+                        "id": 1,
+                        "name": "校史问答",
+                        "description": "关于山东大学历史的问答及抽奖活动",
+                        "create_time": "2024-12-12T22:43:41.957805",
+                        "deadline": "2025-01-01T00:00:00",
+                        "status": 0,
+                        "browse_times": 0,
+                        "creater": {
+                            "id": 1,
+                            "username": "rexyz"
+                        },
+                        "question": [
+                        {
+                            "id": 1,
+                            "q": "山东大学在哪一年建校？",
+                            "o1": "1899",
+                            "o2": "1900",
+                            "o3": "1901",
+                            "o4": "1902"
+                        },
+                        {
+                            "id": 2,
+                            "q": "兴隆山校区在哪一年建成？",
+                            "o1": "2002",
+                            "o2": "2003",
+                            "o3": "2004",
+                            "o4": "2005"
+                        }],
+                        "user_answer": [2, 3, 3, 4],
+                        "correct_answer": [3, 3, 3, 4],
+                        "prize": [
+                        {
+                            "id": 1,
+                            "name": "手机支架",
+                            "image": "https://dummyimage.com/400x300",
+                            "level": 2,
+                            "amount": 20,
+                            "remain": 20,
+                            "project_id": 1
+                        },
+                        {
+                            "id": 2,
+                            "name": "山大信纸",
+                            "image": "https://dummyimage.com/400x300",
+                            "level": 1,
+                            "amount": 10,
+                            "remain": 10,
+                            "project_id": 1
+                        }]
+                }
+            }
+        }
+    
+    
+class ProjectWithQuestionsAndPrizesForManager(ProjectPublic):
+    question: list[QuestionPublicWithAnswer] = []
     prize: list[PrizePublic] = []
     
     model_config = {
@@ -292,7 +367,8 @@ class ProjectWithQuestionsAndPrizes(ProjectPublic):
                             "o1": "1899",
                             "o2": "1900",
                             "o3": "1901",
-                            "o4": "1902"
+                            "o4": "1902",
+                            "a": 3
                         },
                         {
                             "id": 2,
@@ -300,7 +376,8 @@ class ProjectWithQuestionsAndPrizes(ProjectPublic):
                             "o1": "2002",
                             "o2": "2003",
                             "o3": "2004",
-                            "o4": "2005"
+                            "o4": "2005",
+                            "a": 3
                         }],
                         "prize": [
                         {
@@ -324,4 +401,17 @@ class ProjectWithQuestionsAndPrizes(ProjectPublic):
                 }
             }
         }
+    
 
+class AnswerQuestions(BaseModel):
+    project_id: int
+    answer: list[int]
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "project_id": 1,
+                "answer": [2, 3, 3, 4]
+            }
+        }
+    }

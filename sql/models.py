@@ -65,10 +65,10 @@ class Record(SQLModel, table=True):
     user_id: int | None = Field(default=None, foreign_key="user.id")
     project_id: int | None = Field(default=None, foreign_key="project.id")
     answer: str | None = Field(default=None)
-    answer_time: datetime.datetime = Field(default=datetime.datetime.now())
-    raffle_times: int = Field(default=0)
+    answer_time: datetime.datetime | None = Field(default=None)
+    raffle_times: int = Field(default=1)
     raffle_result: int | None = Field(default=None)
-    raffle_time: datetime.datetime = Field(default=datetime.datetime.now())
+    raffle_time: datetime.datetime | None = Field(default=None)
     prize_claim_status: bool = Field(default=False)
     
     user : User | None = Relationship(back_populates="record")
