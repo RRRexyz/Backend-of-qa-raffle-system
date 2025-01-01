@@ -3,7 +3,7 @@ from routers import backstage, helloworld, login, frontstage
 from sql.database import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
 
-
+create_db_and_tables()
 
 tags_metadata = [
     {
@@ -20,7 +20,7 @@ tags_metadata = [
     },
     {
         "name": "前台用户端",
-        "description": "用于用户参与问答抽奖的API，包括答题和抽签。"
+        "description": "用于用户参与问答抽奖的API，包括答题和抽奖。"
     }
 ]
 
@@ -46,7 +46,6 @@ app.add_middleware(
 
 
 if __name__ == "__main__":
-    create_db_and_tables()
     import uvicorn
     uvicorn.run(app="main:app", host="127.0.0.1", port=8000, reload=True)
     

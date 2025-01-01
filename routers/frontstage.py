@@ -33,7 +33,7 @@ async def get_project_details(project = Depends(crud.read_project_details_by_use
 
 @router.post("/answer", response_model=sch.ProjectWithQuestionsAndPrizesForUser,
             responses={401: {"description": "Not authorized."}},
-            summary="提交答题并查看答题结果",
+            summary="提交答题并查看答题结果。",
             description="""
 `project_id`指定答题的项目。
 
