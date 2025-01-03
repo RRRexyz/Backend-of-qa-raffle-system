@@ -4,10 +4,11 @@ import sql.crud as crud
 from routers.login import verify_token
 
 
+
 router = APIRouter()
 
 
-@router.post("/project", response_model=sch.ProjectResponse,
+@router.post("/project", response_model=sch.ProjectWithQuestionsAndPrizesEmpty,
             status_code=status.HTTP_201_CREATED,
             responses={
                 401: {"description": "Not authorized."},
@@ -139,7 +140,7 @@ async def delete_question(question = Depends(crud.delete_question)):
 `image`为奖品图片存储在图床中的url地址。
 
 `level`为奖品等级，1为一等奖，2为二等奖，3为三等奖，以此类推......
-0为安慰奖。可以为空，空表示只有一个等级的奖品，不必设置等级。
+0为安慰奖（可以是小奖或者“谢谢参与”之类的，这类奖允许用户抽到多次）。
 
 `amount`为奖品数量，大于0。（前端校验一下吧）
 """)

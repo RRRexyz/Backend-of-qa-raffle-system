@@ -5,8 +5,10 @@ from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
 from routers.login import verify_token
 from fastapi import Query
-import datetime
+import datetime, random
 
+
+MAX_RAFFLE_TIMES = 5
 
 
 def check_project_timeout(project) -> bool:
@@ -119,10 +121,16 @@ def read_project_details_by_user(project_id: int,
     prizes = session.exec(select(models.Prize).filter_by(project_id=project_id)).all()
     if record:
         project_data = sch.ProjectWithQuestionsAndPrizesForUser.model_validate(project)
+        project_data.raffle_time = record.raffle_time
         if questions != [] and prizes != []:  # 如果是问答+抽奖项目，有记录说明至少已经答了题
             project_data.user_answer = eval(record.answer)
             project_data.correct_answer = [question.a for question in questions]
             project_data.raffle_times = record.raffle_times
+            if record.raffle_result:
+                project_data.raffle_result = eval(record.raffle_result)
+            else:
+                project_data.raffle_result = []
+            project_data.raffle_remain_times = MAX_RAFFLE_TIMES - len(project_data.raffle_result)
             return project_data
         elif questions != [] and prizes == []:  # 如果是仅问答项目，有记录说明已经答了题
             project_data.user_answer = eval(record.answer)
@@ -130,13 +138,14 @@ def read_project_details_by_user(project_id: int,
             return project_data
         elif questions == [] and prizes != []:  # 如果是仅抽奖项目，有记录说明已经抽过奖
             project_data.raffle_times = 1
-            print(555)
+            project_data.raffle_result = eval(record.raffle_result)
+            project_data.raffle_remain_times = 0
             return project_data
     else:
         if questions == [] and prizes != []: # 没记录并且是仅抽奖项目，说明还没参与抽奖
             project_data = sch.ProjectWithQuestionsAndPrizesForUser.model_validate(project)
             project_data.raffle_times = 1
-            print(666)
+            project_data.raffle_remain_times = 1
             return project_data
     return project
 
@@ -187,7 +196,6 @@ def add_prize(prize_add: sch.PrizeAdd,
     prize_add_dict = prize_add.model_dump()
     prize_add_dict['remain'] = prize_add.amount
     prize = models.Prize(**prize_add_dict)
-    # prize = models.Prize.model_validate(prize_add_new)
     session.add(prize)
     session.commit()
     session.refresh(prize)
@@ -255,7 +263,7 @@ def answer_question(user_answer: sch.AnswerQuestions,
         if user_answer.answer[i] == correct_answer[i]:
             correct_num += 1
     correct_rate = correct_num / question_num
-    raffle_times = int(correct_rate * 5 + 0.5)   # 四舍五入，注意用round()函数会出现银行家舍入问题
+    raffle_times = int(correct_rate * MAX_RAFFLE_TIMES + 0.5)   # 四舍五入，注意用round()函数会出现银行家舍入问题
     record_in_db = session.exec(select(models.Record).filter_by(user_id=user.id, 
                                 project_id=user_answer.project_id)).first()
     if not record_in_db:
@@ -269,3 +277,68 @@ def answer_question(user_answer: sch.AnswerQuestions,
         session.refresh(record)
     project = read_project_details_by_user(project_id=user_answer.project_id, user=user, session=session)
     return project
+
+
+def raffle_prize(project_id: int,
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    project = session.get(models.Project, project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Project not found.")
+    if project.status == 2:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                            detail="Project has ended.")
+    record = session.exec(select(models.Record).filter_by(user_id=user.id, project_id=project_id)).first()
+    if record and record.raffle_result:
+        already_raffled_prize = eval(record.raffle_result)
+    else:
+        already_raffled_prize = []
+    prizes = session.exec(select(models.Prize).filter_by(project_id=project_id)).all()
+    prize_pool = {}
+    for prize in prizes:
+        if prize.remain > 0:
+            if prize.id not in already_raffled_prize:   # 如果这个奖品还没抽到过，就加入奖池
+                prize_pool[prize.id] = prize.remain
+            else:
+                # 如果这个奖品已经被抽到过，如果是正常奖品，就不加入奖池。如果是安慰奖，还是加入奖池。
+                if prize.level == 0:    
+                    prize_pool[prize.id] = prize.remain
+    if not record:      # 没有记录就能抽奖说明是仅抽奖项目
+        result = random.choices(list(prize_pool.keys()), weights=list(prize_pool.values()), k=1)
+        record_create = models.Record(user_id=user.id, project_id=project_id, 
+                                    raffle_result=str(result), 
+                                    raffle_time=datetime.datetime.now())
+        session.add(record_create)
+        session.commit()
+        session.refresh(record_create)
+        prize_get = session.get(models.Prize, result[0])
+        prize_get.remain -= 1
+        session.add(prize_get)
+        session.commit()
+        session.refresh(prize_get)
+    else:
+        result = random.choices(list(prize_pool.keys()), weights=list(prize_pool.values()), k=1)
+        if not record.raffle_result:
+            record.raffle_result = str(result)
+            record.raffle_time = datetime.datetime.now()
+            prize_get = session.get(models.Prize, result[0])
+            prize_get.remain -= 1
+            session.add(prize_get)
+            session.commit()
+            session.refresh(prize_get)
+        elif record.raffle_times > len(eval(record.raffle_result)):
+            record.raffle_result = str(eval(record.raffle_result) + result)
+            record.raffle_time = datetime.datetime.now()
+            session.add(record)
+            session.commit()
+            session.refresh(record)
+            prize_get = session.get(models.Prize, result[0])
+            prize_get.remain -= 1
+            session.add(prize_get)
+            session.commit()
+            session.refresh(prize_get)
+    project = read_project_details_by_user(project_id=project_id, user=user, session=session)
+    return project
+
+        

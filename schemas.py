@@ -283,9 +283,11 @@ class ProjectWithQuestionsAndPrizesForUser(ProjectPublic):
     question: list[QuestionPublicWithoutAnswer] = []    
     user_answer: list[int] = []
     correct_answer: list[int] = []
-    raffle_times: int | None = None
     prize: list[PrizePublic] = []
-
+    raffle_times: int | None = None
+    raffle_result: list[int] = []
+    raffle_remain_times: int | None = None
+    raffle_time: datetime.datetime | None = None
     
     model_config = {
         "json_schema_extra": {
@@ -339,7 +341,11 @@ class ProjectWithQuestionsAndPrizesForUser(ProjectPublic):
                             "amount": 10,
                             "remain": 10,
                             "project_id": 1
-                        }]
+                        }],
+                        "raffle_times": 5,
+                        "raffle_result": [3, 3, 3, 1],
+                        "raffle_remain_times": 1,
+                        "raffle_time": "2025-03-01T00:00:00"
                 }
             }
         }
@@ -402,6 +408,28 @@ class ProjectWithQuestionsAndPrizesForManager(ProjectPublic):
             }
         }
     
+    
+class ProjectWithQuestionsAndPrizesEmpty(ProjectPublic):
+    question: list[QuestionPublicWithAnswer] = []
+    prize: list[PrizePublic] = []
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": 
+                    {
+                        "id": 1,
+                        "name": "校史问答",
+                        "description": "关于山东大学历史的问答及抽奖活动",
+                        "create_time": "2024-12-12T22:43:41.957805",
+                        "deadline": "2025-01-01T00:00:00",
+                        "status": 0,
+                        "browse_times": 0,
+                        "question": [],
+                        "prize": []
+                }
+            }
+        }
+    
 
 class AnswerQuestions(BaseModel):
     project_id: int
@@ -415,3 +443,4 @@ class AnswerQuestions(BaseModel):
             }
         }
     }
+
