@@ -4,7 +4,7 @@ from sql.database import get_session
 from sqlmodel import Session, select
 from fastapi import Depends, HTTPException, status
 from routers.login import verify_token
-from fastapi import Query
+from fastapi import Query, Path
 import datetime, random
 
 
@@ -98,6 +98,26 @@ def read_project_details(project_id: int,
         session.add(project)
         session.commit()
         session.refresh(project)
+    records = session.exec(select(models.Record).filter_by(project_id=project_id)).all()
+    project_data = sch.ProjectWithQuestionsAndPrizesForManager.model_validate(project)
+    if records != []:
+        for record in records:
+            if record.answer_time and record.answer:
+                user = session.get(models.User, record.user_id)
+                qa_participant = sch.QA_ParticipantPublic(id=user.id,
+                                                        username=user.username,
+                                                        answer=eval(record.answer),
+                                                        answer_time=record.answer_time)
+                project_data.qa_participant.append(qa_participant)
+            if record.raffle_time and record.raffle_result:
+                user = session.get(models.User, record.user_id)
+                raffle_participant = sch.RaffleParticipantPublic(id=user.id, 
+                                                                username=user.username,
+                                                                raffle_result=eval(record.raffle_result),
+                                                                raffle_time=record.raffle_time,
+                                                                prize_claim_status=record.prize_claim_status)
+                project_data.raffle_participant.append(raffle_participant)
+        return project_data
     return project
 
 
@@ -341,4 +361,31 @@ def raffle_prize(project_id: int,
     project = read_project_details_by_user(project_id=project_id, user=user, session=session)
     return project
 
-        
+
+def read_records_by_user(user = Depends(verify_token),
+                        page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
+                        page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
+                        session: Session=Depends(get_session)):
+    records = session.exec(select(models.Record).filter_by(user_id=user.id)).all()
+    projects = []
+    for record in records:
+        project = session.get(models.Project, record.project_id)
+        projects.append(project)
+    return projects[(page-1)*page_size:page*page_size]
+
+
+def claim_prize(project_id: int = Path(description="兑奖项目的id"), 
+                user_id: int = Path(description="兑奖用户的id"), 
+                user = Depends(verify_token),
+                session: Session=Depends(get_session)):
+    check_permission(user)
+    record = session.exec(select(models.Record).filter_by(user_id=user_id, project_id=project_id)).first()
+    if not record or not record.raffle_result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="Record not found.")
+    record.prize_claim_status = True
+    session.add(record)
+    session.commit()
+    session.refresh(record)
+    project = read_project_details(project_id=project_id, user=user, session=session)
+    return project

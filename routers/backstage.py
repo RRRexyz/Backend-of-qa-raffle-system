@@ -73,7 +73,7 @@ async def delete_project(project = Depends(crud.delete_project)):
             description="""
 用于在管理员主页展示自己创建的项目预览信息。
 """)
-async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
+async def get_projects(projects = Depends(crud.read_projects_by_manager)):
     return projects
 
 
@@ -84,7 +84,7 @@ async def get_my_projects(projects = Depends(crud.read_projects_by_manager)):
             description="""
 使用`id`指定要获取的项目。
             
-当管理员进入项目详情页时，用此接口展示项目的所有信息。
+当管理员进入项目详情页时，用此接口展示项目的所有信息，包括参与问答和抽奖的用户信息。
 
 调用此接口不会增加项目的访问次数。（管理员自己看没什么意义）
 """)
@@ -192,4 +192,14 @@ async def delete_prize(prize = Depends(crud.delete_prize)):
 只有问答的项目可以加上“仅问答”的标签，只有抽奖的项目可以加上“仅抽奖”的标签。二者都有的话可以加上“问答抽奖”的标签。
 """)
 async def publish_project(project = Depends(crud.publish_project)):
+    return project
+
+
+@router.patch("/prize/claim/{project_id}/{user_id}",
+            response_model=sch.ProjectWithQuestionsAndPrizesForManager,
+            responses={401: {"description": "Not authorized."},
+                        403: {"description": "No permission."},
+                        404: {"description": "Record not found."}},
+            summary="为一个用户兑奖并标记为已领取。")
+async def claim_prize(project = Depends(crud.claim_prize)):
     return project

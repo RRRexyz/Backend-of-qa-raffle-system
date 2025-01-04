@@ -6,6 +6,16 @@ from routers.login import verify_token
 router = APIRouter()
 
 
+@router.get("/projects/user", response_model=list[sch.ProjectResponse],
+            responses={401: {"description": "Not authorized."}},
+            summary="获取用户参与过的所有项目预览（不包含问答题目和抽奖奖品信息）。",
+            description="""
+用于在用户主页展示自己参与过的项目预览信息。
+""")
+async def get_records_by_user(projects = Depends(crud.read_records_by_user)):
+    return projects
+
+
 @router.get("/project/{project_id}/user", 
             response_model=sch.ProjectWithQuestionsAndPrizesForUser,
             responses={401: {"description": "Not authorized."},
@@ -40,7 +50,7 @@ async def get_project_details(project = Depends(crud.read_project_details_by_use
 
 @router.post("/answer", response_model=sch.ProjectWithQuestionsAndPrizesForUser,
             responses={401: {"description": "Not authorized."}},
-            summary="提交答题并查看答题结果。",
+            summary="提交答题。",
             description="""
 `project_id`指定答题的项目。
 

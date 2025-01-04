@@ -298,7 +298,7 @@ class ProjectWithQuestionsAndPrizesForUser(ProjectPublic):
                         "description": "关于山东大学历史的问答及抽奖活动",
                         "create_time": "2024-12-12T22:43:41.957805",
                         "deadline": "2025-01-01T00:00:00",
-                        "status": 0,
+                        "status": 1,
                         "browse_times": 0,
                         "creater": {
                             "id": 1,
@@ -349,11 +349,28 @@ class ProjectWithQuestionsAndPrizesForUser(ProjectPublic):
                 }
             }
         }
-    
+
+
+class QA_ParticipantPublic(BaseModel):
+    id: int
+    username: str
+    answer: list[int] = []
+    answer_time: datetime.datetime | None = None
+
+
+class RaffleParticipantPublic(BaseModel):
+    id: int
+    username: str
+    raffle_result: list[int] = []
+    raffle_time: datetime.datetime | None = None
+    prize_claim_status: bool = False
+
     
 class ProjectWithQuestionsAndPrizesForManager(ProjectPublic):
     question: list[QuestionPublicWithAnswer] = []
     prize: list[PrizePublic] = []
+    qa_participant: list[QA_ParticipantPublic] = []
+    raffle_participant: list[RaffleParticipantPublic] = []
     
     model_config = {
         "json_schema_extra": {
@@ -364,7 +381,7 @@ class ProjectWithQuestionsAndPrizesForManager(ProjectPublic):
                         "description": "关于山东大学历史的问答及抽奖活动",
                         "create_time": "2024-12-12T22:43:41.957805",
                         "deadline": "2025-01-01T00:00:00",
-                        "status": 0,
+                        "status": 1,
                         "browse_times": 0,
                         "question": [
                         {
@@ -403,7 +420,57 @@ class ProjectWithQuestionsAndPrizesForManager(ProjectPublic):
                             "amount": 10,
                             "remain": 10,
                             "project_id": 1
-                        }]
+                        }],
+                        "qa_participant": [
+                        {
+                        "id": 3,
+                        "username": "rrex",
+                        "answer": [
+                            2,
+                            3,
+                            3,
+                            4
+                        ],
+                        "answer_time": "2025-01-04T21:51:01.345390"
+                        },
+                        {
+                        "id": 2,
+                        "username": "rex",
+                        "answer": [
+                            2,
+                            3,
+                            3,
+                            4
+                        ],
+                        "answer_time": "2025-01-04T21:58:19.845668"
+                        }
+                    ],
+                    "raffle_participant": [
+                        {
+                        "id": 3,
+                        "username": "rrex",
+                        "raffle_result": [
+                            1,
+                            1,
+                            2
+                        ],
+                        "raffle_time": "2025-01-04T22:03:34.686299",
+                        "prize_claim_status": False
+                        },
+                        {
+                        "id": 2,
+                        "username": "rex",
+                        "raffle_result": [
+                            3,
+                            1,
+                            2,
+                            1,
+                            1
+                        ],
+                        "raffle_time": "2025-01-04T22:02:36.490638",
+                        "prize_claim_status": False
+                        }
+                    ]
                 }
             }
         }
