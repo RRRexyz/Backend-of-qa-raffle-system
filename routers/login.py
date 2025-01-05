@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
@@ -97,6 +97,8 @@ def verify_token(token: Annotated[str, Depends(oauth2_scheme)],
             summary="注册一个新用户（普通用户或管理员），用户名必须唯一",
             description="""
 管理员可以创建、查看、更新和删除项目，而普通用户只能查看和参与项目。
+
+`qq`和`phone`字段可选。
 """)
 async def register_user(user: sch.UserRegister, session: Session = Depends(get_session)):
     user_for_db = models.User(username=user.username, 
@@ -137,6 +139,54 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                 token_type="bearer", username=user.username)
 
 
+@router.patch("/user/me", response_model=sch.UserResponse,
+            responses={401: {"description": "Not authorized."},
+                    404: {"description": "User not found."}},
+            summary="更新当前登录用户的信息。",
+            description="""
+可改项包括`username`、`qq`、`phone`。
+""")
+async def update_user(user_update: sch.UserUpdate, 
+                    user = Depends(verify_token), 
+                    session: Session = Depends(get_session)):
+    user = session.get(models.User, user.id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="User not found.")
+    user_data = user_update.model_dump(exclude_unset=True)
+    user.sqlmodel_update(user_data)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@router.patch("/user/password",
+            responses={401: {"description": "Incorrect username or password."},
+                    404: {"description": "User not found."}},
+            summary="用户更改密码。",
+            description="""
+不需要登录，只需提供用户名、原密码和新密码。
+""")
+async def change_password(username: str = Form(), 
+                        old_password: str = Form(), 
+                        new_password: str = Form() ,
+                        session: Session = Depends(get_session)):
+    user = session.exec(select(models.User).filter_by(username=username)).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail="User not found.")
+    if not verify_password(old_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password.",
+            headers={"WWW-Authenticate": "Bearer"})
+    user.hashed_password = get_password_hash(new_password)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    
+
 @router.get("/refresh/token", response_model=Token,
             responses={401: {"description": "Invalid Refresh token."}},
             summary="当access_token过期时，用refresh_token获取新的access_token",
@@ -165,14 +215,14 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)],
                 username=user.username, token_type="bearer")
 
 
-@router.get("/user/me/", response_model=sch.UserResponse,
+@router.get("/user/me", response_model=sch.UserResponse,
             responses={401: {"description": "Not authorized."}},
             summary="获取当前登录用户的信息。")
 async def get_current_user(user = Depends(verify_token)):
     return user
     
 
-@router.delete("/user/me/", status_code=status.HTTP_204_NO_CONTENT,
+@router.delete("/user/me", status_code=status.HTTP_204_NO_CONTENT,
             responses={401: {"description": "Not authorized."}},
             summary="谨慎：注销当前登录用户的账号。")
 async def delete_current_user(user = Depends(verify_token), session: Session = Depends(get_session)):

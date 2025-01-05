@@ -6,8 +6,8 @@ from sqlmodel import SQLModel
 class UserRegister(BaseModel):
     username: str
     password: str
-    qq: str 
-    phone: str
+    qq: str | None = None
+    phone: str | None = None
     manage_permission: bool = False
 
     model_config = {
@@ -21,6 +21,23 @@ class UserRegister(BaseModel):
             }
         }
     }
+    
+    
+class UserUpdate(BaseModel):
+    username: str | None = None
+    qq: str | None = None
+    phone: str | None = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "username": "rex",
+                "qq": "2467945786",
+                "phone": "13812345678"
+            }
+        }
+    }
+
     
     
 class UserLogin(BaseModel):
@@ -40,6 +57,8 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
+    qq: str | None = None
+    phone: str | None = None
     manage_permission: bool = False
 
     model_config = {
@@ -47,6 +66,8 @@ class UserResponse(BaseModel):
             "example": {
                 "id": 1,
                 "username": "rex",
+                "qq": "2467945786",
+                "phone": "13812345678",
                 "manage_permission": False,
             }
         }
