@@ -58,13 +58,13 @@ def update_project(project_id: int, project_update: sch.ProjectUpdate,
 
 
 def read_projects_by_manager(user = Depends(verify_token),
-                            page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
-                            page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
+                            # page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
+                            # page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
                             session: Session=Depends(get_session)):
     check_permission(user)
-    projects = session.exec(select(models.Project).offset((page-1)*page_size).limit(page_size)
-                            .filter_by(creater_id=user.id)).all()
-    
+    # projects = session.exec(select(models.Project).offset((page-1)*page_size).limit(page_size)
+    #                         .filter_by(creater_id=user.id)).all()
+    projects = session.exec(select(models.Project).filter_by(creater_id=user.id)).all()
     for project in projects:
         if check_project_timeout(project):
             session.add(project)
@@ -369,15 +369,16 @@ def raffle_prize(project_id: int,
 
 
 def read_records_by_user(user = Depends(verify_token),
-                        page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
-                        page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
+                        # page: int = Query(default=1, ge=1, description="展示第几页（从1开始）"),
+                        # page_size: int = Query(default=10, ge=1, description="每一页展示的项目数"),
                         session: Session=Depends(get_session)):
     records = session.exec(select(models.Record).filter_by(user_id=user.id)).all()
     projects = []
     for record in records:
         project = session.get(models.Project, record.project_id)
         projects.append(project)
-    return projects[(page-1)*page_size:page*page_size]
+    # return projects[(page-1)*page_size:page*page_size]
+    return projects
 
 
 def claim_prize(project_id: int = Path(description="兑奖项目的id"), 
