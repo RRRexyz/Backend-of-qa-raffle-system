@@ -1,0 +1,11 @@
+__pycache__
+.venv
+.vscode
+static/*
+!static/.gitkeep
+
+*.http
+*.log
+*.pyc
+imgpost.md
+*.db
