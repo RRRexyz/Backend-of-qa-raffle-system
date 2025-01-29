@@ -69,9 +69,9 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 
 
 @router.get("/refresh/token", response_model=Token,
-            response_description="返回新的access_token，而refresh_token原样返回",
+            response_description="返回新的access_token和refresh_token",
             responses={401: {"description": "无效的身份验证凭据"}},
-            summary="当access_token过期时，用refresh_token获取新的access_token")
+            summary="当access_token过期时，用refresh_token获取新的access_token和refresh_token")
 async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)], 
                 session: Session = Depends(get_session)):
     """在请求头添加`Authorization`字段并设置值为`Bearer <refresh_token>`。"""
@@ -91,6 +91,7 @@ async def refresh_token(refresh_token: Annotated[str, Depends(oauth2_scheme)],
     if not user:
         raise refresh_token_exception
     access_token = create_access_token(data={"sub": user.username})
+    refresh_token = create_refresh_token(data={"sub": user.username})
     return Token(access_token=access_token, refresh_token=refresh_token,
                 username=user.username, token_type="bearer")
 
